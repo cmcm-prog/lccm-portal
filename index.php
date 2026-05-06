@@ -1,7 +1,7 @@
 <?php
 // 1. DATABASE CONNECTION SETTINGS (From image_aed67e.png)
-$servername = "trolley.proxy.rlwy.net";
-$port       = 55915; 
+$servername = "mysql.railway.internal"; // Change from trolley.proxy.rlwy.net
+$port       = 3306;
 $username   = "root";
 $password   = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; // Click 'show' in Railway to get this
 $dbname     = "railway";
