@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
 
         // Save to Visitors Table
-        $sql = "INSERT INTO visitors (name, contact_number, purpose) VALUES ('$name', '$email', '$purpose')";
+        $sql = "INSERT INTO visitors (name, email , purpose) VALUES ('$name', '$email', '$purpose')";
         
         if (mysqli_query($conn, $sql)) {
             echo "<script>alert('Visitor Registration Successful!');</script>";
