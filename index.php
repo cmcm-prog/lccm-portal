@@ -1,64 +1,69 @@
 <?php
-// 1. START SESSION (This is the "VIP Pass" that remembers the user)
+// 1. START SESSION
 session_start();
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 2. DATABASE CONNECTION
+// 2. DATABASE CONNECTION SETTINGS
 $servername = "mysql.railway.internal"; 
 $username = "root";
 $password = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; 
 $dbname = "railway";
 $port = 3306;
 
+// Create connection
 $conn = mysqli_connect($servername, $username, $password, $dbname, $port);
 
+// Check connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// 3. LOGIC HANDLER
+// 3. PHP LOGIC TO HANDLE ROUTING
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $_POST['user_role'] ?? '';
 
-    // --- FACULTY LOGIN LOGIC ---
     if ($role === "Faculty") {
         $email = mysqli_real_escape_string($conn, $_POST['faculty_email']);
         $submitted_pass = $_POST['password'];
 
-        // Find the faculty by email
-        $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
-    
+        // Based on image_9fc756.png, your email is stored in the 'name' column
+        // and your password column starts with a capital 'P'
+        $query = "SELECT * FROM faculty WHERE name = '$email' LIMIT 1";
+        
+        // FIX: Actually execute the query
+        $result = mysqli_query($conn, $query);
+
         if ($result && mysqli_num_rows($result) > 0) {
             $user = mysqli_fetch_assoc($result);
             
-            // VERIFY PASSWORD: This checks if the typed password matches the HASH in the DB
-            if (password_verify($submitted_pass, $user['password'])) {
-                // Success! Save user info to the Session
-                $_SESSION['faculty_id'] = $user['id'];
+            // VERIFY PASSWORD: Match against the column 'Password' (Capital P)
+            // Note: This requires a HASHED password in your DB to work!
+            if (password_verify($submitted_pass, $user['Password'])) {
+                // Success! Create the "VIP Pass" session
+                $_SESSION['faculty_id'] = $user['faculty_id'];
                 $_SESSION['faculty_name'] = $user['name'];
                 
                 header("Location: faculty_dashboard.php");
                 exit();
             } else {
-                echo "<script>alert('Wrong password! Access Denied.');</script>";
+                echo "<script>alert('Wrong password! Please check if your password is properly hashed in the database.');</script>";
             }
         } else {
             echo "<script>alert('No faculty account found with that email.');</script>";
         }
 
-    // --- VISITOR REQUEST LOGIC ---
     } elseif ($role === "Visitor") {
         $name    = mysqli_real_escape_string($conn, $_POST['username']);
         $email   = mysqli_real_escape_string($conn, $_POST['email']);
         $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
 
-        // Insert as 'Pending' status (Ensure you added the 'status' column to your DB!)
+        // Save to Visitors Table with 'Pending' status
         $sql = "INSERT INTO visitors (name, email, purpose, status) VALUES ('$name', '$email', '$purpose', 'Pending')";
         
         if (mysqli_query($conn, $sql)) {
-            echo "<script>alert('Request Submitted! Please check your email for approval later.');</script>";
+            echo "<script>alert('Visitor Registration Successful! Your request is now Pending.');</script>";
         } else {
             echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
         }
@@ -73,10 +78,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LCCM - Portal Access</title>
     <style>
-        /* [Keeping your existing CSS styles here...] */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: serif; }
         body { height: 100vh; overflow: hidden; position: relative; background-color: #000; }
-        body::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.2; z-index: -1; background-image: url('campus-bg.jpg'); background-position: center; background-repeat: no-repeat; background-size: cover; }
+        body::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.2; z-index: -1; background-image: url('campus-bg.jpg'); 
+            background-position: center; background-repeat: no-repeat; background-size: cover;
+        }
         .header-bar { background-color: #1a428a; color: white; text-align: center; padding: 10px 0; border-bottom: 2px solid white; position: relative; z-index: 1; }
         .header-bar h1 { font-size: 1.2rem; text-transform: uppercase; }
         .header-bar p { font-size: 0.8rem; font-style: italic; }
@@ -170,12 +178,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 visitorSection.style.display = 'block';
                 facultySection.style.display = 'none';
                 pageTitle.innerText = 'VISITOR REQUEST';
-            } else {
+            } else if (this.value === 'Faculty') {
                 visitorSection.style.display = 'none';
                 facultySection.style.display = 'block';
                 pageTitle.innerText = 'FACULTY LOGIN';
             }
         });
     </script>
+
 </body>
 </html>
