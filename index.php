@@ -9,7 +9,7 @@ $password = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; // Click 'show' in Railway to ge
 $dbname = "railway";
 
 // Create connection
-$conn = mysqli_connect(mysql.railway.internal, root, nAhfmxSpwiwRmvwGfihndXTOUEVjInjC, railway, 3306);
+$conn = mysqli_connect("mysql.railway.internal", "root", "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC", "railway", 3306);
 // Check connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
