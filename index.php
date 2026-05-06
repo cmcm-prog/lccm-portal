@@ -1,10 +1,12 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 // 1. DATABASE CONNECTION SETTINGS (From image_aed67e.png)
 $servername = "mysql.railway.internal"; // Change from trolley.proxy.rlwy.net
-$port       = 3306;
-$username   = "root";
-$password   = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; // Click 'show' in Railway to get this
-$dbname     = "railway";
+$port = 3306;
+$username = "root";
+$password = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; // Click 'show' in Railway to get this
+$dbname = "railway";
 
 // Create connection
 $conn = mysqli_connect("mysql.railway.internal", "root", "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC", "railway", 3306);
