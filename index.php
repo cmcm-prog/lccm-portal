@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Based on image_9fc756.png, your email is stored in the 'name' column
         // and your password column starts with a capital 'P'
-        $query = "SELECT * FROM faculty WHERE name = '$email' LIMIT 1";
+        $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
         
         // FIX: Actually execute the query
         $result = mysqli_query($conn, $query);
