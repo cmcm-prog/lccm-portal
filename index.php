@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $submitted_pass = $_POST['password'];
 
         // Based on image_954ecc.png, the email is in the 'name' column
-        $query = "SELECT * FROM faculty WHERE name = '$email' LIMIT 1";
+        $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
         
         $result = mysqli_query($conn, $query);
 
