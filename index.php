@@ -1,12 +1,11 @@
 <?php
-// 1. START SESSION (Crucial so the dashboard knows who is logged in)
+// 1. START SESSION
 session_start();
 
+// ERROR REPORTING (Helpful for debugging white screens)
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // 2. DATABASE CONNECTION
 $servername = "mysql.railway.internal"; 
@@ -30,18 +29,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = mysqli_real_escape_string($conn, $_POST['faculty_email']);
         $submitted_pass = $_POST['password'];
 
-        // FIX: We look in the 'name' column because that's where emails are in your DB (image_954ecc.png)
-        $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
+        // Based on image_954ecc.png, the email is in the 'name' column
+        $query = "SELECT * FROM faculty WHERE name = '$email' LIMIT 1";
         
-        // FIX: Actually execute the query (This was missing before!)
         $result = mysqli_query($conn, $query);
 
         if ($result && mysqli_num_rows($result) > 0) {
             $user = mysqli_fetch_assoc($result);
             
-            // FIX: Match against 'Password' with a capital 'P' (image_954ecc.png)
+            // Match against 'Password' with a capital 'P'
             if (password_verify($submitted_pass, $user['Password'])) {
-                // Success! Set session variables
                 $_SESSION['faculty_id'] = $user['faculty_id'];
                 $_SESSION['faculty_name'] = $user['name'];
                 
@@ -60,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email   = mysqli_real_escape_string($conn, $_POST['email']);
         $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
 
-        // Save with 'Pending' status so Faculty can approve it later
         $sql = "INSERT INTO visitors (name, email, purpose, status) VALUES ('$name', '$email', '$purpose', 'Pending')";
         
         if (mysqli_query($conn, $sql)) {
@@ -93,9 +89,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .content-wrapper { display: flex; align-items: center; gap: 50px; max-width: 1000px; }
         .logo-section img { width: 350px; }
         .login-box { background-color: rgba(26, 66, 138, 0.9); padding: 40px; border-radius: 10px; width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .form-group { display: flex; align-items: center; margin-bottom: 20px; }
+        .form-group { display: flex; align-items: center; margin-bottom: 20px; position: relative; }
         .form-group label { color: white; width: 150px; font-size: 0.85rem; font-weight: bold; }
         .form-group input, .form-group select { flex: 1; padding: 8px; border: none; outline: none; background-color: white; }
+        
+        /* Style for the "Show Password" area */
+        .show-pass-wrapper { margin-left: 150px; margin-bottom: 20px; color: white; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .show-pass-wrapper input { width: auto; flex: none; cursor: pointer; }
+
         #visitor-section, #faculty-section { display: none; }
         .btn-container { text-align: right; margin-top: 10px; }
         .login-btn { background-color: white; color: #1a428a; border: none; padding: 8px 30px; font-size: 1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
@@ -155,7 +156,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                         <div class="form-group">
                             <label>PASSWORD:</label>
-                            <input type="password" name="password">
+                            <!-- Added an ID to this input so JavaScript can find it -->
+                            <input type="password" name="password" id="facultyPass">
+                        </div>
+                        <!-- SHOW PASSWORD OPTION -->
+                        <div class="show-pass-wrapper">
+                            <input type="checkbox" id="togglePass">
+                            <label for="togglePass" style="width: auto; cursor: pointer;">Show Password</label>
                         </div>
                     </div>
 
@@ -173,6 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         const facultySection = document.getElementById('faculty-section');
         const pageTitle = document.getElementById('dynamic-title');
 
+        // Logic to switch between Visitor and Faculty forms
         roleSelect.addEventListener('change', function() {
             if (this.value === 'Visitor') {
                 visitorSection.style.display = 'block';
@@ -182,6 +190,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 visitorSection.style.display = 'none';
                 facultySection.style.display = 'block';
                 pageTitle.innerText = 'FACULTY LOGIN';
+            }
+        });
+
+        // NEW: Logic to Show/Hide Password
+        const togglePass = document.getElementById('togglePass');
+        const facultyPass = document.getElementById('facultyPass');
+
+        togglePass.addEventListener('change', function() {
+            if (this.checked) {
+                facultyPass.type = 'text'; // Unhide
+            } else {
+                facultyPass.type = 'password'; // Hide
             }
         });
     </script>
