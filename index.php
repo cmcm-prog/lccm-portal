@@ -1,35 +1,53 @@
 <?php
+// 1. DATABASE CONNECTION SETTINGS (From image_aed67e.png)
+$servername = "trolley.proxy.rlwy.net";
+$port       = 55915; 
+$username   = "root";
+$password   = "nAhfmxSpwiwRmvwGfihndXTOUEVjInjC"; // Click 'show' in Railway to get this
+$dbname     = "railway";
 
-// PHP logic to handle routing after submission
+// Create connection
+$conn = mysqli_connect($servername, $username, $password, $dbname, $port);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $role = $_POST['user_role'] ?? '';
-
-
-
-    if ($role === "Faculty") {
-
-        // In a real app, you would verify the password against a database here
-
-        // For now, we redirect to a faculty dashboard
-
-        header("Location: faculty_dashboard.php");
-
-        exit();
-
-    } elseif ($role === "Visitor") {
-
-        // Process visitor data (save to DB, etc.)
-
-        echo "<script>alert('Visitor Registration Successful!');</script>";
-
-        // header("Location: visitor_thanks.php"); 
-
-    }
-
+// Check connection
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
 }
 
+// 2. PHP logic to handle routing after submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $role = $_POST['user_role'] ?? '';
+
+    if ($role === "Faculty") {
+        $email = mysqli_real_escape_string($conn, $_POST['faculty_email']);
+        $pass  = $_POST['password'];
+
+        // Real Database Check: Looking for the faculty in the table we created
+        $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
+        $result = mysqli_query($conn, $query);
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            header("Location: faculty_dashboard.php");
+            exit();
+        } else {
+            echo "<script>alert('Faculty record not found!');</script>";
+        }
+
+    } elseif ($role === "Visitor") {
+        $name    = mysqli_real_escape_string($conn, $_POST['username']);
+        $email   = mysqli_real_escape_string($conn, $_POST['email']);
+        $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
+
+        // Save to Visitors Table
+        $sql = "INSERT INTO visitors (name, contact_number, address) VALUES ('$name', '$email', '$purpose')";
+        
+        if (mysqli_query($conn, $sql)) {
+            echo "<script>alert('Visitor Registration Successful!');</script>";
+        } else {
+            echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+}
 ?>
 
 
