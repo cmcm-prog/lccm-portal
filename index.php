@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = mysqli_fetch_assoc($result);
             
             // Match against 'Password' with a capital 'P'
-            if (password_verify($submitted_pass, $user['Password'])) {
+            if (password_verify($submitted_pass, $user['password'])) {
                 $_SESSION['faculty_id'] = $user['faculty_id'];
                 $_SESSION['faculty_name'] = $user['name'];
                 
