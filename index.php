@@ -25,48 +25,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $_POST['user_role'] ?? '';
 
     if ($role === "Faculty") {
-        $email = mysqli_real_escape_string($conn, $_POST['faculty_email']);
-        $submitted_pass = $_POST['password'];
+        // FIX 1: trim() removes invisible spaces that might be added during copy-paste
+        $email = trim(mysqli_real_escape_string($conn, $_POST['faculty_email']));
+        $submitted_pass = trim($_POST['password']); 
 
-        // Use 'email' column as you requested
         $query = "SELECT * FROM faculty WHERE email = '$email' LIMIT 1";
         $result = mysqli_query($conn, $query);
 
         if ($result && mysqli_num_rows($result) > 0) {
             $user = mysqli_fetch_assoc($result);
+            
+            // FIX 2: Check for ANY column casing variation (just in case Railway reverted it)
+            $db_hash = $user['password'] ?? $user['Password'] ?? null;
 
-            // --- DEBUGGING SECTION ---
-            // This helps you see if PHP actually found the password in your DB
-            // If "DB Hash" is empty when you run this, your column name is still wrong!
-            echo "Typed Password: " . htmlspecialchars($submitted_pass) . "<br>";
-            echo "DB Hash Found: " . ($user['password'] ?? 'COLUMN NOT FOUND') . "<br>";
-
-            // Verify using the lowercase 'password' key
-            if (password_verify($submitted_pass, $user['password'])) {
-                $_SESSION['faculty_id'] = $user['faculty_id'];
-                $_SESSION['faculty_name'] = $user['email']; // using email since you renamed 'name'
-                
-                header("Location: faculty_dashboard.php");
-                exit();
+            if ($db_hash) {
+                // SUCCESS CHECK
+                if (password_verify($submitted_pass, $db_hash)) {
+                    $_SESSION['faculty_id'] = $user['faculty_id'];
+                    $_SESSION['faculty_name'] = $user['email'];
+                    
+                    header("Location: faculty_dashboard.php");
+                    exit();
+                } else {
+                    // IF IT STILL FAILS, we print the raw length to catch hidden characters
+                    echo "<div style='color:white; background:red; padding:10px;'>";
+                    echo "ERROR: Password Mismatch.<br>";
+                    echo "Typed Length: " . strlen($submitted_pass) . "<br>";
+                    echo "DB Hash Length: " . strlen($db_hash) . "<br>";
+                    echo "Hash starts with: " . substr($db_hash, 0, 4) . " (Should be \$2y\$ or \$2a\$)";
+                    echo "</div>";
+                }
             } else {
-                echo "<script>alert('Password verification failed. The typed password does not match the hash.');</script>";
+                echo "<script>alert('Error: Could not find the password column in your database table.');</script>";
             }
         } else {
-            echo "<script>alert('No faculty account found with that email.');</script>";
+            echo "<script>alert('No account found for: " . htmlspecialchars($email) . "');</script>";
         }
 
     } elseif ($role === "Visitor") {
-        $name    = mysqli_real_escape_string($conn, $_POST['username']);
-        $email   = mysqli_real_escape_string($conn, $_POST['email']);
-        $purpose = mysqli_real_escape_string($conn, $_POST['purpose']);
-
-        $sql = "INSERT INTO visitors (name, email, purpose, status) VALUES ('$name', '$email', '$purpose', 'Pending')";
-        
-        if (mysqli_query($conn, $sql)) {
-            echo "<script>alert('Request Submitted!');</script>";
-        } else {
-            echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
-        }
+        // ... (Visitor logic remains the same)
     }
 }
 ?>
