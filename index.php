@@ -36,7 +36,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result && mysqli_num_rows($result) > 0) {
             $user = mysqli_fetch_assoc($result);
-            
+
+            // TEMPORARY DEBUGGING - REMOVE AFTER TESTING
+        echo "Typed: " . $submitted_pass . "<br>";
+        echo "DB Hash: " . $user['password'] . "<br>";
+
             // Match against 'Password' with a capital 'P'
             if (password_verify($submitted_pass, $user['password'])) {
                 $_SESSION['faculty_id'] = $user['faculty_id'];
